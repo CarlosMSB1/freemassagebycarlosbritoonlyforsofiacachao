@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Massage Offer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #6200ea;
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            position: relative;
+        }
+        #menu-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        #menu-button div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 4px 0;
+        }
+        #menu {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            text-align: left;
+            z-index: 1000;
+            display: none;
+            width: 430px;
+            height: auto;
+        }
+        #menu a,
+        #menu .back-button {
+            text-decoration: none;
+            color: #6200ea;
+            padding: 10px;
+            display: block;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #menu a:hover,
+        #menu .back-button:hover {
+            background-color: #f0f0f0;
+        }
+        #contact-info, #feedback-info, #about-us-description {
+            display: none;
+        }
+        main {
+            padding: 20px;
+            max-width: 600px;
+        }
+        h2 {
+            font-size: 24px;
+            color: #333;
+            margin: 10px 0 20px 0;
+        }
+        button {
+            padding: 15px 25px;
+            margin: 15px;
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
+        footer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #eeeeee;
+            width: 100%;
+            text-align: center;
+        }
+        .contact-info {
+            color: #333;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .about-us-description, .feedback-description {
+            font-size: 16px;
+            margin: 10px 0;
+            color: #555;
+        }
+        a.feedback-description {
+            color: #6200ea;
+            text-decoration: underline;
+        }
+        .timer {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #6200ea;
+        }
+
+        #message-container-not-running-timer-ended p {
+            color: #6200ea; /* Roxo claro */
+            font-size: 18px; /* Tamanho maior */
+        }
+    </style>
+    <script>
+        let timer;
+        let endTime;
+        let timerStarted = false;
+
+        function toggleMenu() {
+    const menu = document.getElementById('menu');
+    const isVisible = menu.style.display === 'block';
+
+    // Alterna entre mostrar e ocultar o menu
+    menu.style.display = isVisible ? 'none' : 'block';
+
+    // Caso o menu seja reaberto, mostra as opções principais
+    if (!isVisible) {
+        const menuOptions = document.querySelectorAll("#menu a:not(.back-button)");
+        menuOptions.forEach(option => option.style.display = 'block');
+        hideAllSections(); // Oculta qualquer seção previamente aberta
+    }
+}
+
+        function showContactInfo() {
+            const contactInfo = document.getElementById('contact-info');
+            const menuOptions = document.querySelectorAll("#menu a:not(.back-button)");
+            menuOptions.forEach(option => option.style.display = 'none'); // Oculta as opções de menu quando "Contactos" for clicado
+            contactInfo.style.display = 'block'; // Exibe as informações de contato dentro do menu
+            document.getElementById('contact-description').style.display = 'none'; // Esconde a descrição quando for "Contactos"
+        }
+
+        function showAboutUs() {
+            const menuOptions = document.querySelectorAll("#menu a:not(.back-button)");
+            menuOptions.forEach(option => option.style.display = 'none'); // Oculta as opções de menu quando "Descubra mais sobre nós" for clicado
+            document.getElementById('contact-info').style.display = 'none'; 
+            document.getElementById('about-us-description').style.display = 'block'; 
+            document.getElementById('feedback-info').style.display = 'none';
+        }
+
+        function showFeedback() {
+            hideAllSections();
+            document.getElementById('feedback-info').style.display = 'block'; // Exibe a seção de feedback
+        }
+
+        function hideAllSections() {
+            document.getElementById('contact-info').style.display = 'none'; 
+            document.getElementById('about-us-description').style.display = 'none';
+            document.getElementById('feedback-info').style.display = 'none';
+        }
+
+        function goBackToMenu() {
+            hideAllSections();
+            const menuOptions = document.querySelectorAll("#menu a:not(.back-button)");
+            menuOptions.forEach(option => option.style.display = 'block'); // Reexibe as opções de menu ao voltar
+        }
+
+        function startTimer() {
+            document.getElementById("claim-button").style.display = "none";
+            document.getElementById("timer").style.display = "block";
+            document.getElementById("message-container-timer").style.display = "block";
+            document.getElementById("message-container-not-running").style.display = "none";
+            document.getElementById("message-container-not-running-timer-ended").style.display = "none";
+            document.getElementById("message-after-timer").style.display = "none";
+
+            endTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours
+            localStorage.setItem("endTime", endTime);
+
+            timerStarted = true;
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const timeRemaining = endTime - now;
+
+            if (timeRemaining <= 0) {
+                timerEnded();
+            } else {
+                const hours = Math.floor((timeRemaining / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((timeRemaining / (1000 * 60)) % 60);
+                const seconds = Math.floor((timeRemaining / 1000) % 60);
+                document.getElementById("timer").innerHTML = `Free Massage Available in ${hours}h ${minutes}m ${seconds}s!`;
+            }
+        }
+
+        function timerEnded() {
+            clearInterval(timer);
+            document.getElementById("timer").style.display = "none";
+            document.getElementById("claim-button").style.display = "inline-block";
+            document.getElementById("message-container-not-running").style.display = "block";
+            document.getElementById("message-container-not-running-timer-ended").style.display = "block";
+            document.getElementById("message-after-timer").style.display = "block";
+            document.getElementById("message-container-timer").style.display = "none";
+            localStorage.removeItem("endTime");
+        }
+
+        function decreaseOneHour() {
+            if (timerStarted) {
+                endTime -= 60 * 60 * 1000; // Reduce 1 hour
+                localStorage.setItem("endTime", endTime);
+            }
+        }
+
+        window.onload = function () {
+            const storedEndTime = localStorage.getItem("endTime");
+            const claimButton = document.getElementById("claim-button");
+            const timerElement = document.getElementById("timer");
+            const messageContainerNotRunning = document.getElementById("message-container-not-running");
+            const messageContainerTimer = document.getElementById("message-container-timer");
+            const messageAfterTimer = document.getElementById("message-after-timer");
+            const messageContainerNotRunningTimerEnded = document.getElementById("message-container-not-running-timer-ended");
+
+            if (storedEndTime) {
+                endTime = parseInt(storedEndTime);
+                const now = new Date().getTime();
+
+                if (endTime > now) {
+                    // Timer is running
+                    timerStarted = true;
+                    claimButton.style.display = "none";
+                    timerElement.style.display = "block";
+                    messageContainerTimer.style.display = "block";
+                    messageContainerNotRunning.style.display = "none";
+                    messageContainerNotRunningTimerEnded.style.display = "none";
+                    messageAfterTimer.style.display = "none";
+                    updateTimer();
+                    timer = setInterval(updateTimer, 1000);
+                } else {
+                    // Timer has ended
+                    timerEnded();
+                }
+            } else {
+                // Show "timer ended" state by default
+                claimButton.style.display = "inline-block";
+                timerElement.style.display = "none";
+                messageContainerNotRunning.style.display = "block";
+                messageContainerNotRunningTimerEnded.style.display = "block";
+                messageContainerTimer.style.display = "none";
+                messageAfterTimer.style.display = "block";
+            }
+        };
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Having an exhausting day? Looks like you've come to the right place!</h1>
+        <button id="menu-button" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </button>
+        <div id="menu">
+            <a href="#" onclick="showAboutUs()">Descubra mais sobre nós</a>
+            <a href="#" onclick="showContactInfo()">Contactos</a>
+            <a href="#" onclick="showFeedback()">Feedback</a>
+            <div id="contact-info" style="display: none;">
+                <a href="#" class="back-button" onclick="goBackToMenu()">← Voltar</a>
+                <p class="contact-info">Para mais informações não exite em contactar-nos, o tempo estimado para a nossa resposta é de 24h e teremos todo o gosto em esclarece-la :)</p>
+                <p class="contact-info">Número de Telemóvel: 932401674</p>
+                <p class="contact-info">Email: carlosbritomassagesofiacachaoexclusive@gmail.com</p>
+            </div>
+            <div id="feedback-info" style="display: none;"> <a href="#" class="back-button" onclick="goBackToMenu()">← Voltar</a> 
+                <p class="feedback-description">Está satisfeita com os nossos serviços?</p> 
+                <p class="feedback-description">Se está a usufruir deles, é porque é uma pessoa muito especial, por favor envie o seu feedback de forma a podermos aumentar o seu grau de satisfação em sessões posteriores :)</p> 
+                <p class="feedback-description">Responda a este questionário e registaremos o seu feedback.</p> 
+                <a href="https://linkdofeedback.com" target="_blank" class="feedback-description">Clique aqui para responder ao questionário</a> 
+            </div> 
+            <div id="about-us-description" style="display: none;">
+                <a href="#" class="back-button" onclick="goBackToMenu()">← Voltar</a>
+                <p class="about-us-description">Massagista especializado e licenciado, com técnicas únicas desenvolvidas para proporcionar as melhores sensações de relaxamento.</p>
+                <p class="about-us-description">A exclusividade é o que nos define, pelo que a marcação será impossível a menos que se chame Sofia Cachão, e que comprove a sua identidade, bem como a entidade divina.</p>
+                <p class="about-us-description">Esperamos que se encontre satisfeita com os nossos serviços e lamentamos a exclusividade aos restantes.</p>
+                <p class="about-us-description">As melhores felicidades e os melhores momentos Zen :)</p>
+            </div>           
+        </div>
+    </header>
+    <main>
+        <div id="message-container-not-running">
+            <h2>Free Massage Available!</h2>
+            <p>Take advantage of this special offer and claim your unique free massage now, designed for your needs!</p>
+        </div>
+        <button id="claim-button" onclick="startTimer()">Claim Free Massage!</button>
+        <div id="message-container-not-running-timer-ended" class="message" style="display: none;">
+            <p>O tempo de espera acabou! Pode solicitar a sua massagem relaxante completamente grátis! Aproveite :)</p>
+        </div>
+        <div id="timer" class="timer" style="display: none;">Free Massage Available in 24 hours!</div>
+        <button onclick="decreaseOneHour()">+1 Beijinho :)</button>
+        <div id="message-container-timer" class="message" style="display: none;">
+            <p>Quantos mais beijinhos deres, mais rápido obténs a tua massagem grátis!</p>
+        </div>
+        <div id="message-after-timer" class="message" style="display: none;">
+            <p>Já tens a tua massagem disponível, mas podes dar os beijinhos que quiseres, também é grátis :)</p>
+        </div>
+    </main>
+    <footer>
+        <p>© Massagista Licenciado e com Douturamento</p>
+    </footer>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
